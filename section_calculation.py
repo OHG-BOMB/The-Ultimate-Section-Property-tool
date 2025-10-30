@@ -2,8 +2,17 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-while True:
+# =============================================================================
+# class section:
+#     def __init__(self,n_lines):
+#       self.section = np.full((n,4),np.nan)
+#       points = np.column_stack((np.concatenate((self.section[:,0],self.section[:,1])),np.concatenate((self.section[:,2],self.section[:,3]))))
+#       self.Xpoints = points[:,0]
+#       self.Xpoints = points[:,1]
+#
+# =============================================================================
+flag = True
+while flag:
 
  
     n = int(input("Enter Number of elements: "))
@@ -23,19 +32,20 @@ while True:
          shape[i,3] = float(input(f"Enter second y coordinates of element {i+1}: "))
          print("------------------------------------------------------------")
          print()
-    len_sum = 0
-    x1 = shape[0:n,0]
-    x2 = shape[0:n,1]
-    y1 = shape[0:n,2]
-    y2 = shape[0:n,3]
+
     #                               Example     
 # =============================================================================
 #     n = 4 
 #     shape = np.array([[0,1,0,0],[0.5,0.5,0,1],[1,1,0,1],[0.5,1.5,1,1]])
 #     length = np.zeros(n)
-#     
 # =============================================================================
-
+    #  End of Example
+    
+    len_sum = 0
+    x1 = shape[0:n,0]
+    x2 = shape[0:n,1]
+    y1 = shape[0:n,2]
+    y2 = shape[0:n,3]
     
     for i in range(n):
         length[i] = math.sqrt((x2[i]-x1[i])**2 + (y2[i]-y1[i])**2)
@@ -81,6 +91,24 @@ while True:
     beta = 0.5 * math.atan2(-2*ixy,ix-iy)
     
     
+    ###############  TEST ##################
+    
+    is_open_end = False
+    points = np.column_stack((np.concatenate((shape[:,0],shape[:,1])),np.concatenate((shape[:,2],shape[:,3]))))
+    open_end = points[0,0:2]
+    while not is_open_end:
+        for i in range(points.shape[0]):
+            for j in range(points.shape[0]):
+                if np.array_equal(points[i,0:2], points[j,0:2]):
+                    open_end = points[i,0:2]
+                    is_open_end = True
+                else:
+                    is_open_end = False
+                    
+            if is_open_end:
+                break
+            
+    #############   END OF TEST  #################
     
     p_axes_scale = 0.1
     p_axes_minx = np.minimum(np.min(x1),np.min(x2))
@@ -95,7 +123,7 @@ while True:
     if shape_slope == 0:
         plt.plot([xcg, xcg],
         np.linspace(1.2*np.minimum(np.min(y1), np.min(y2)),1.2*np.maximum(np.max(y1), np.max(y2)), 2), '--')
-
+    
     else:
         plt.plot(xp,yp2,'--')
     plt.plot(xcg,ycg,'o')
@@ -110,7 +138,7 @@ while True:
     # plt.figtext(0,0.75,f"ky = {ky:.4f}/(d^3 t)")
     # plt.figtext(0,0.7,f"kxy = {kxy:.4f}/(d^3 t)")
     # plt.figtext(0,0.6,f"beta = {math.degrees(beta):.4f}°")
-    plt.suptitle( f"Ix = {ix:.4f} | d³t | Iy = {iy:.4f} d³t | Ixy = {ixy:.4f} d³t\n" f"kx = {kx:.4f}/(d³t) | ky = {ky:.4f}/(d³t) | kxy = {kxy:.4f}/(d³t)\n" f"β = {math.degrees(beta):.2f}° \n Xg = {xcg:.4f} | Yg = {ycg:.4f}", y=0.98,fontsize=10)
+    plt.suptitle( f"Ix = {ix:.4f} d³t | Iy = {iy:.4f} d³t | Ixy = {ixy:.4f} d³t\n" f"kx = {kx:.4f}/(d³t) | ky = {ky:.4f}/(d³t) | kxy = {kxy:.4f}/(d³t)\n" f"β = {math.degrees(beta):.2f}° \n Xg = {xcg:.4f} | Yg = {ycg:.4f}", y=0.98,fontsize=10)
     print(f"Ix ={ix:.4f} d^3t ")
     print(f"Iy ={iy:.4f} d^3t ")
     print(f"Ixy ={ixy:.4f} d^3t ")
@@ -120,4 +148,22 @@ while True:
     print(f"beta = {math.degrees(beta):.4f}°")
     print()
     plt.show()
+    flag = False
 
+def shear_center(shape,kx,ky,kxy):
+    is_open_end = False
+    points = np.column_stack((np.concatenate((shape[:,0],shape[:,1])),np.concatenate((shape[:,2],shape[:,3]))))
+    open_end = points[0,0:2]
+    while not is_open_end:
+        for i in range(points[0]):
+            for j in range(points[0]):
+                if points[i,0:2] != points[j,0:2]:
+                    open_end = points[i,0:2]
+                    is_open_end = True
+                else:
+                    is_open_end = False
+                    
+            if is_open_end:
+                break
+
+  
