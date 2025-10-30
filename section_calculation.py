@@ -2,15 +2,84 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-# =============================================================================
-# class section:
-#     def __init__(self,n_lines):
-#       self.section = np.full((n,4),np.nan)
-#       points = np.column_stack((np.concatenate((self.section[:,0],self.section[:,1])),np.concatenate((self.section[:,2],self.section[:,3]))))
-#       self.Xpoints = points[:,0]
-#       self.Xpoints = points[:,1]
-#
-# =============================================================================
+class section:
+        
+    def __init__(self,n,X1,X2,Y1,Y2):
+      self.n = n 
+      self.section = np.full((n,4),np.nan)
+      self.X1points = x1
+      self.X2points = x2
+      self.Y1points = y1
+      self.Y2points = y2
+      self.Xpoints = np.concatenate((self.X1points,self.X2points))
+      self.Ypoints = np.concatenate((self.Y1points,self.Y2points))
+      self.points = np.column_stack(self.Xpoints,self.Ypoints)
+
+      
+    def get_CG(self):
+        
+        self.length = np.full((n,1),np.nan)
+        self.xcg = 0
+        self.ycg = 0
+        len_total = 0
+        xcge = (self.X1points+self.X2points)/2
+        ycge = (self.Y1points+self.Y2points)/2 
+
+        
+        for i in range(n):    
+            self.length[i] = math.sqrt((self.X2points[i]-self.X1points[i])**2 + (self.Y2points[i]-self.Y1points[i])**2)
+            len_total += self.length[i]
+
+        
+        for i in range(n):
+            self.xcg += xcge[i]*length[i]/len_total
+            self.ycg += ycge[i]*length[i]/len_total
+            
+    def get_ik(self):
+        
+            iy_axis = length**3/12
+            theta = np.zeros(n)
+            
+            self.ix = 0
+            self.ix = 0
+            self.ixy = 0
+            
+            for i in range(n):
+                theta[i] = math.atan2(y2[i]-y1[i],x2[i]-x1[i])
+                ixe = iy_axis * math.sin(theta[i])**2
+                iye = iy_axis * math.cos(theta[i])**2
+                ixye = iy_axis/2 * math.sin(2*theta[i])
+                
+                self.ix += ixe[i] + length[i]*(ycge[i]-ycg)**2
+                self.ix += iye[i] + length[i]*(xcge[i]-xcg)**2
+                self.ixy += ixye[i] + length[i]*(ycge[i]-ycg)*(xcge[i]-xcg)
+            
+            self.kb = self.ix * self.ix - self.ixy**2
+            self.kx = self.ix/self.kb
+            self.ky = self.ix/self.kb
+            self.kxy = self.ixy/self.kb
+            
+            shape_slope = -2*self.ixy/(self.ix-self.ix)
+            self.beta = 0.5 * math.atan2(-2*self.ixy,self.ix-self.ix)
+    
+    def get_end(self):
+        
+        is_open_end = False
+       
+        self.open_end = points[0,0:2]
+        while not is_open_end:
+            for i in range(points.shape[0]):
+                for j in range(points.shape[0]):
+                    if np.array_equal(points[i,0:2], points[j,0:2]):
+                        self.open_end = points[i,0:2]
+                        is_open_end = True
+                    else:
+                        is_open_end = False
+                        
+                if is_open_end:
+                    break
+
+      
 flag = True
 while flag:
 
