@@ -2,6 +2,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
+# comment
 class section:
         
     def __init__(self,n,X1,X2,Y1,Y2,XB,YB,B):
