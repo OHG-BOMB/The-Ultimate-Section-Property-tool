@@ -4,13 +4,15 @@ import matplotlib.pyplot as plt
 
 class section:
         
-    def __init__(self,n,X1,X2,Y1,Y2):
+    def __init__(self,n,X1,X2,Y1,Y2,XB,YB,B):
       self.n = n 
-      self.section = np.full((n,4),np.nan)
+      self.web = np.full((n,4),np.nan)
       self.X1points = X1
       self.X2points = X2
       self.Y1points = Y1
       self.Y2points = Y2
+      self.xboom = XB
+      self.yboom = YB
       self.Xpoints = np.concatenate((self.X1points,self.X2points))
       self.Ypoints = np.concatenate((self.Y1points,self.Y2points))
       self.points = np.column_stack((self.Xpoints,self.Ypoints))
@@ -103,33 +105,56 @@ class section:
 
 
 # ------------------------------------Uncomment if testing a section-----------------------------------------
+while(True):
+    is_boom  = input("Does the section contain booms? [Y], [N] ").lower()
+    if(is_boom == 'y'):
+        n_b = int(input("Enter Number of booms: "))
+        print()
+        boom = np.zeros((n_b,3))
 
-# =============================================================================
-#  
-# n = int(input("Enter Number of elements: "))
-# print()
-# shape = np.zeros((n,4))
-# 
-# for i in range(n):
-#      print(f"################# First coordinates of element {i+1} #################")
-#      print()
-#      shape[i,0] = float(input(f"Enter first x coordinates of element {i+1}: "))
-#      shape[i,2] = float(input(f"Enter first y coordinates of element {i+1}: "))
-#      print()
-#      print(f"################# Second coordinates of element {i+1} #################")
-#      print()
-#      shape[i,1] = float(input(f"Enter second x coordinates of element {i+1}: "))
-#      shape[i,3] = float(input(f"Enter second y coordinates of element {i+1}: "))
-#      print("------------------------------------------------------------")
-#      print()
-# =============================================================================
+        for i in range(n_b):
+             print(f"################# Boom {i+1} #################")
+             print()
+             boom[i,0] = float(input("x: "))
+             boom[i,1] = float(input("y: "))
+             boom[i,2] = float(input("A: "))
+             print("------------------------------------------------------------")
+             print()
+        break
+    elif(is_boom == 'n'):
+        break
+    
+while(True):
+    is_web  = input("Does the section contain webs? [Y], [N] ").lower()
+    if(is_web == 'y'):
+        n = int(input("Enter Number of webs: "))
+        print()
+        shape = np.zeros((n,4))
+
+        for i in range(n):
+             print(f"################# Web {i+1} #################")
+             print()
+             shape[i,0] = float(input("x1: "))
+             shape[i,2] = float(input("y1: "))
+             print()
+             shape[i,1] = float(input("x2: "))
+             shape[i,3] = float(input("y2: "))
+             print("------------------------------------------------------------")
+             print()
+             
+        break
+    
+    elif(is_web == 'n'):
+        break
+    
+
        
 
 
   #                -----  Example (comment if testing a section) ----   
-n = 4 
-shape = np.array([[0,1,0,0],[0.5,0.5,0,1],[1,1,0,1],[0.5,1.5,1,1]])
-length = np.zeros(n)
+# n = 4 
+# shape = np.array([[0,1,0,0],[0.5,0.5,0,1],[1,1,0,1],[0.5,1.5,1,1]])
+# length = np.zeros(n)
     
 # ----------------------------------------------------------------------------- 
 
@@ -137,7 +162,7 @@ length = np.zeros(n)
 
 
 # Initializing
-shape = section(n,shape[:,0],shape[:,1],shape[:,2],shape[:,3])
+shape = section(n,shape[:,0],shape[:,1],shape[:,2],shape[:,3],boom[:,0],boom[:,1],boom[:,2])
 
 
 
