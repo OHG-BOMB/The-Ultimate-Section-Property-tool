@@ -5,13 +5,14 @@ import matplotlib.pyplot as plt
 # comment
 class section:
         
-    def __init__(self,n,X1,X2,Y1,Y2,t,nb,XB,YB,B):
-      self.n = n 
-      self.web = np.full((n,4),np.nan)
+    def __init__(self,nw,X1,X2,Y1,Y2,t,nb,XB,YB,B):
+      self.nw = nw 
+      self.web = np.full((nw,4),np.nan)
       self.X1points = X1
       self.X2points = X2
       self.Y1points = Y1
       self.Y2points = Y2
+      self.w_len_total = 0
       self.nb = nb
       self.xboom = XB
       self.yboom = YB
@@ -27,27 +28,27 @@ class section:
       
     def get_CG(self):
         
-        self.length = np.full((self.n,1),np.nan)
+        self.length = np.full((self.nw,1),np.nan)
         self.xcgw = 0
         self.ycgw = 0
         self.xcgb = 0
         self.ycgb = 0
-        w_len_total = 0
+
         self.xcge = (self.X1points+self.X2points)/2
         self.ycge = (self.Y1points+self.Y2points)/2 
 
-        
-        for i in range(self.n):    
-            self.length[i] = math.sqrt((self.X2points[i]-self.X1points[i])**2 + (self.Y2points[i]-self.Y1points[i])**2)
-            w_len_total += self.length[i]
+        self.w_len_total = np.sum(np.sqrt((self.X2points-self.X1points)**2 + (self.Y2points-self.Y1points)**2))
+        # for i in range(self.nw):    
+        #     self.length[i] = np.sqrt((self.X2points[i]-self.X1points[i])**2 + (self.Y2points[i]-self.Y1points[i])**2)
+        #     w_len_total += self.length[i]
 
-        
-        for i in range(self.n):
-            self.xcgw += (self.xcge[i]*self.length[i]/w_len_total).item()
-            self.ycgw += (self.ycge[i]*self.length[i]/w_len_total).item()
-            
+        if(self.w_len_total != 0):
+            for i in range(self.nw):
+                self.xcgw += (self.xcge[i]*self.length[i]/self.w_len_total).item()
+                self.ycgw += (self.ycge[i]*self.length[i]/self.w_len_total).item()
+                
 
-        if self.b_area_total != 0:    
+        if (self.b_area_total != 0):    
             for i in range(self.nb):
                 self.xcgb += self.xboom[i] * self.B[i]/ self.b_area_total
                 self.ycgb += self.yboom[i] * self.B[i]/ self.b_area_total
@@ -58,27 +59,28 @@ class section:
     def get_ik(self):
         
             iy_axis = self.length**3/12
-            theta = np.zeros(self.n)
+            theta = np.zeros(self.nw)
             
             self.ixw = 0
             self.iyw = 0
             self.ixyw = 0
 
 
-            
-            for i in range(self.n):
-                theta[i] = math.atan2(self.Y2points[i]-self.Y1points[i],self.X2points[i]-self.X1points[i])
-                ixe = iy_axis * math.sin(theta[i])**2
-                iye = iy_axis * math.cos(theta[i])**2
-                ixye = iy_axis/2 * math.sin(2*theta[i])
-                
-                self.ixw += (ixe[i] + self.length[i]*(self.ycge[i]-self.ycg)**2).item()
-                self.iyw += (iye[i] + self.length[i]*(self.xcge[i]-self.xcg)**2).item()
-                self.ixyw += (ixye[i] + self.length[i]*(self.ycge[i]-self.ycg)*(self.xcge[i]-self.xcg)).item()
-                
-            self.ixb = np.sum(self.B * (self.ycgb - self.ycg)**2)
-            self.iyb = np.sum(self.B * (self.xcgb - self.xcg)**2)
-            self.ixyb = np.sum(self.B * (self.ycgb - self.ycg)*(self.xcgb - self.xcg))
+            if(self.w_len_total != 0):      
+                for i in range(self.nw):
+                    theta[i] = math.atan2(self.Y2points[i]-self.Y1points[i],self.X2points[i]-self.X1points[i])
+                    ixe = iy_axis * math.sin(theta[i])**2
+                    iye = iy_axis * math.cos(theta[i])**2
+                    ixye = iy_axis/2 * math.sin(2*theta[i])
+                    
+                    self.ixw += (ixe[i] + self.length[i]*(self.ycge[i]-self.ycg)**2).item()
+                    self.iyw += (iye[i] + self.length[i]*(self.xcge[i]-self.xcg)**2).item()
+                    self.ixyw += (ixye[i] + self.length[i]*(self.ycge[i]-self.ycg)*(self.xcge[i]-self.xcg)).item()
+             
+            if (self.b_area_total != 0):    
+                self.ixb = np.sum(self.B * (self.yboom - self.ycg)**2)
+                self.iyb = np.sum(self.B * (self.xboom- self.xcg)**2)
+                self.ixyb = np.sum(self.B * (self.yboom- self.ycg)*(self.xboom - self.xcg))
             
             self.ix = self.ixb+self.ixw
             self.iy = self.iyb+self.iyw
@@ -95,9 +97,15 @@ class section:
     def get_principal_axes(self):
         
             self.p_axes_scale = 0.1
-            self.p_axes_minx = np.minimum(np.min(self.X1points),np.min(self.X2points))
-            self.p_axes_maxx = np.maximum(np.max(self.X1points),np.max(self.X2points))
-    
+            if (self.w_len_total != 0 ):
+                self.p_axes_minx = np.minimum(np.min(self.X1points),np.min(self.X2points))
+                self.p_axes_maxx = np.maximum(np.max(self.X1points),np.max(self.X2points))
+            elif (self.b_area_total != 0):
+                self.p_axes_minx = np.min(self.xboom)
+                self.p_axes_maxx = np.max(self.xboom)
+            else:
+                self.p_axes_minx = 0 
+                self.p_axes_maxx = 1 
     def get_end(self):
         
         is_open_end = False
@@ -125,79 +133,81 @@ class section:
 
       
 
-n_b = 0
-n = 0
-thickness = np.ones(n)
+n_b = 1
+nw = 1
+thickness = np.ones(nw)
+boom = np.zeros((1,3))
+shape = np.zeros((1,4))
 
 # ------------------------------------Uncomment if testing a section-----------------------------------------
-# while(True):
-#     is_boom  = input("Does the section contain booms? [Y], [N] ").lower()
+while(True):
+    is_boom  = input("Does the section contain booms? [Y], [N] ").lower()
     
-#     if(is_boom == 'y'):
-#         n_b = int(input("Enter Number of booms: "))
-#         print()
-#         boom = np.zeros((n_b,3))
+    if(is_boom == 'y'):
+        n_b = int(input("Enter Number of booms: "))
+        print()
+        boom = np.zeros((n_b,3))
 
-#         for i in range(n_b):
-#              print(f"################# Boom {i+1} #################")
-#              print()
-#              boom[i,0] = float(input("x: "))
-#              boom[i,1] = float(input("y: "))
-#              boom[i,2] = float(input("A: "))
-#              print("------------------------------------------------------------")
-#              print()
-#         break
-#     elif(is_boom == 'n'):
-#         break
+        for i in range(n_b):
+             print(f"################# Boom {i+1} #################")
+             print()
+             boom[i,0] = float(input("x: "))
+             boom[i,1] = float(input("y: "))
+             boom[i,2] = float(input("A: "))
+             print("------------------------------------------------------------")
+             print()
+        break
+    elif(is_boom == 'n'):
+        break
     
-# while(True):
-#     is_web  = input("Does the section contain webs? [Y], [N] ").lower()
-#     if(is_web == 'y'):
-#         while(True):
-#             is_t_const = input("Does the section contain webs? [Y], [N] ").lower()
-#             if(is_t_const == 'y'):
-#                 t_const = True
-#                 break
-#             elif(is_t_const == 'n'):
-#                 t_const = False
-#                 break
+while(True):
+    is_web  = input("Does the section contain webs? [Y], [N] ").lower()
+    if(is_web == 'y'):
+        while(True):
+            is_t_const = input("Is the cross section constant (It doesn't work for now')? [Y], [N] ").lower()
+            if(is_t_const == 'y'):
+                t_const = True
+                break
+            elif(is_t_const == 'n'):
+                t_const = False
+                break
         
-#         n = int(input("Enter Number of webs: "))
-#         print()
-#         shape = np.zeros((n,4))
-#         if(t_const):
-#             thickness = np.ones(n)
-#         else:
-#             thickness = np.zeros(n)
+        nw = int(input("Enter Number of webs: "))
+        print()
+        shape = np.zeros((nw,4))
+        if(t_const):
+            thickness = np.ones(nw)
+        else:
+            thickness = np.zeros(nw)
 
-#         for i in range(n):
-#              print(f"################# Web {i+1} #################")
-#              print()
-#              shape[i,0] = float(input("x1: "))
-#              shape[i,2] = float(input("y1: "))
-#              print()
-#              shape[i,1] = float(input("x2: "))
-#              shape[i,3] = float(input("y2: "))
-#              if (not t_const):
-#                  thickness[i] = input("t: ")
-#              print("------------------------------------------------------------")
-#              print()
+        for i in range(nw):
+             print(f"################# Web {i+1} #################")
+             print()
+             shape[i,0] = float(input("x1: "))
+             shape[i,2] = float(input("y1: "))
+             print()
+             shape[i,1] = float(input("x2: "))
+             shape[i,3] = float(input("y2: "))
+             if (not t_const):
+                 thickness[i] = input("t: ")
+             print("------------------------------------------------------------")
+             print()
              
-#         break
+        break
     
-#     elif(is_web == 'n'):
-#         break
+    elif(is_web == 'n'):
+        break
     
-# -----------------------------------------END Of CLI------------------------------------------------
+# ----------------------------------------- END Of CLI ------------------------------------------------
        
 
 
-  #                -----  Example (comment if testing a section) ----   
-n = 4 
-shape = np.array([[0,1,0,0],[0.5,0.5,0,1],[1,1,0,1],[0.5,1.5,1,1]])
-boom = np.zeros((1,3))
+  # -----------------  Example (comment if testing a section) ----------------- 
+# nw = 4 
+# shape = np.array([[0,1,0,0],[0.5,0.5,0,1],[1,1,0,1],[0.5,1.5,1,1]])
+ 
 
-length = np.zeros(n)
+# length = np.zeros(nw)
     
 # ----------------------------------------------------------------------------- 
 
@@ -205,7 +215,7 @@ length = np.zeros(n)
 
 
 # Initializing
-shape = section(n,shape[:,0],shape[:,1],shape[:,2],shape[:,3],thickness[:],n_b,boom[:,0],boom[:,1],boom[:,2])
+shape = section(nw,shape[:,0],shape[:,1],shape[:,2],shape[:,3],thickness[:],n_b,boom[:,0],boom[:,1],boom[:,2])
 
 
 
@@ -213,7 +223,7 @@ shape = section(n,shape[:,0],shape[:,1],shape[:,2],shape[:,3],thickness[:],n_b,b
 
 # Plotting lines
 
-for i in range(n):
+for i in range(nw):
     
     plt.plot((shape.X1points,shape.X2points),(shape.Y1points,shape.Y2points))
     
@@ -235,12 +245,13 @@ if shape.slope == 0:
 else:
     plt.plot(xp,yp2,'--')
     
+# Plotting booms
 for i in range(n_b):
-    plt.plot(shape.xboom, shape.yboom )
+    plt.plot(shape.xboom[i], shape.yboom[i],'o' )
     
     
     
-plt.plot(shape.xcg,shape.ycg,'o')
+plt.plot(shape.xcg,shape.ycg,'x')
 plt.axis('equal')
 
 
@@ -252,6 +263,7 @@ print(f"kx = {shape.kx:.4f}/(d^3 t)")
 print(f"ky = {shape.ky:.4f}/(d^3 t)")
 print(f"kxy = {shape.kxy:.4f}/(d^3 t)")
 print(f"beta = {math.degrees(shape.beta):.4f}°")
+print(f"beta = {shape.b_area_total:.4f}°")
 print()
 plt.show()
 
