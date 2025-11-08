@@ -100,12 +100,17 @@ class section:
             if (self.w_len_total != 0 ):
                 self.p_axes_minx = np.minimum(np.min(self.X1points),np.min(self.X2points))
                 self.p_axes_maxx = np.maximum(np.max(self.X1points),np.max(self.X2points))
+                self.p_axes_miny = np.minimum(np.min(self.X1points),np.min(self.X2points))
+                self.p_axes_maxy = np.maximum(np.max(self.Y1points),np.max(self.Y2points))
             elif (self.b_area_total != 0):
                 self.p_axes_minx = np.min(self.xboom)
                 self.p_axes_maxx = np.max(self.xboom)
+                self.p_axes_miny = np.min(self.yboom)
+                self.p_axes_maxy = np.max(self.yboom)
             else:
                 self.p_axes_minx = 0 
-                self.p_axes_maxx = 1 
+                self.p_axes_maxx = 1
+
     def get_end(self):
         
         is_open_end = False
@@ -236,12 +241,12 @@ yp1 = shape.slope* xp - shape.slope *shape.xcg + shape.ycg
 yp2 =  -xp/shape.slope + 1/shape.slope *shape.xcg + shape.ycg
 plt.plot(xp,yp1,'--')
 
+tol = 1e-6
 
-
-if shape.slope == 0:
+if abs(shape.slope) < tol:
     plt.plot([shape.xcg, shape.xcg],
-    np.linspace(1.2*np.minimum(np.min(shape.X1points), np.min(shape.X1points)),1.2*np.maximum(np.max(shape.X1points), np.max(shape.X1points)), 2), '--')
-
+    np.linspace(1.2*shape.p_axes_miny,1.2*shape.p_axes_maxy, 2), '--')
+    
 else:
     plt.plot(xp,yp2,'--')
     
